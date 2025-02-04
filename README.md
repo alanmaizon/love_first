@@ -77,7 +77,7 @@
 
 ### **Version Control & Deployment:**  
 - Git for version control.  
-- Deploy front-end with Vercel and back-end with AWS or Heroku.  
+- Deploy front-end and back-end with Render.  
 
 ---
 

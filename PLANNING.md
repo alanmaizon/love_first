@@ -11,7 +11,7 @@
 ✅ **Feb 3 – Feb 9**
 - Implement **JWT authentication & user registration**.  
 - Set up **Django security settings** (HTTPS, CSRF, CORS).  
-- Create **React project structure** (with Tailwind & routing).  
+- Create **React project structure**.  
 
 ---
 
