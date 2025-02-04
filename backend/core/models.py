@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 # Charity: This model represents a charity organization. It includes the fields name, description, and website. The name field is unique, meaning that each charity must have a unique name.
 
@@ -21,11 +22,15 @@ class Donation(models.Model):
 
     def allocate_funds(self):
         selected_charities = self.charities.all()
-        if selected_charities.exists():
-            charity_share = (self.amount * 0.50) / selected_charities.count()
-            couple_share = self.amount * 0.50
-            return {
-                "charities": {charity.name: charity_share for charity in selected_charities},
-                "couple": couple_share,
-            }
-        return {"charities": {}, "couple": self.amount}
+        couple_share = self.amount * Decimal("0.50")
+        charity_share_total = self.amount * Decimal("0.50")
+
+        if selected_charities.count() > 0:
+            per_charity_share = charity_share_total / selected_charities.count()
+        else:
+            per_charity_share = Decimal("0.00")
+
+        return {
+            "couple": couple_share,
+            "charities": {charity.name: per_charity_share for charity in selected_charities},
+        }
