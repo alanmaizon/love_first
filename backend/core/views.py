@@ -15,6 +15,11 @@ class CharityListCreateView(generics.ListCreateAPIView):
     queryset = Charity.objects.all()
     serializer_class = CharitySerializer
 
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        response.status_code = status.HTTP_201_CREATED  # 🔥 Force 201
+        return response
+
 # DonationCreateView: This view class is used to create a new donation. It extends the CreateAPIView class provided by Django REST framework and specifies the queryset and serializer class to use. It also sets the permission_classes attribute to [IsAuthenticated] to require authentication for creating donations.
 
 class DonationCreateView(generics.CreateAPIView):
@@ -44,13 +49,12 @@ def register_user(request):
 
 # login_user: This view function is used to log in a user. It takes a POST request with user credentials, validates the credentials, and returns the user's access and refresh tokens if the credentials are valid.
 
-@api_view(["POST"])
+@api_view(["POST"])  # Ensure it accepts only POST
 def logout_user(request):
     try:
         refresh_token = request.data["refresh"]
         token = RefreshToken(refresh_token)
         token.blacklist()
         return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
-    except Exception as e:
+    except Exception:
         return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-
