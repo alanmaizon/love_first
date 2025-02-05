@@ -19,7 +19,7 @@
 ✅ **Feb 10 – Feb 16**
 - Develop **Charity & Donation models** in Django.  
 - Implement **Donation Allocation logic** (50% split to charities).  
-- Build & test **Django REST API for donations**.  
+- Build & test **Django REST API for donations**. 
 
 ✅ **Feb 17 – Feb 23**
 - Integrate **React frontend with API (Axios, SWR, or React Query)**.  
@@ -86,7 +86,6 @@ erDiagram
         int id PK
         string name
         string description
-        float goal_amount
         float total_raised
         datetime created_at
     }

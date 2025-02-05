@@ -1,60 +1,34 @@
-from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework import status
-from .serializers import UserSerializer
-from rest_framework import generics
+from rest_framework import viewsets, permissions, filters
 from .models import Charity, Donation
 from .serializers import CharitySerializer, DonationSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 
-# CharityListCreateView: This view class is used to list all charities and create a new charity. It extends the ListCreateAPIView class provided by Django REST framework and specifies the queryset and serializer class to use.
+class CharityPagination(PageNumberPagination):
+    page_size = 5  # Override default page size if needed
+    page_size_query_param = "page_size"
+    max_page_size = 50
 
-class CharityListCreateView(generics.ListCreateAPIView):
-    queryset = Charity.objects.all()
+class CharityViewSet(viewsets.ModelViewSet):
+    queryset = Charity.objects.only("id", "name").order_by('name')  # Fetch only needed fields
     serializer_class = CharitySerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name"]
+    pagination_class = CharityPagination
 
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        response.status_code = status.HTTP_201_CREATED  # 🔥 Force 201
-        return response
+    def get_permissions(self):
+        """Allow anyone to GET, but only admins can POST"""
+        if self.request.method in permissions.SAFE_METHODS:  # GET, HEAD, OPTIONS
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]  # Only admins can POST, PUT, DELETE
 
-# DonationCreateView: This view class is used to create a new donation. It extends the CreateAPIView class provided by Django REST framework and specifies the queryset and serializer class to use. It also sets the permission_classes attribute to [IsAuthenticated] to require authentication for creating donations.
-
-class DonationCreateView(generics.CreateAPIView):
-    queryset = Donation.objects.all()
+class DonationViewSet(viewsets.ModelViewSet):
+    queryset = Donation.objects.select_related("user").prefetch_related("charities") # Optimize queries
     serializer_class = DonationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Donation.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-# register_user: This view function is used to register a new user. It takes a POST request with user data, validates the data using the UserSerializer, and creates a new user if the data is valid. It returns a response with the user's access and refresh tokens if the user is created successfully.
-
-@api_view(["POST"])
-def register_user(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
-        refresh = RefreshToken.for_user(user)
-        return Response(
-            {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            },
-            status=status.HTTP_201_CREATED,
-        )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# login_user: This view function is used to log in a user. It takes a POST request with user credentials, validates the credentials, and returns the user's access and refresh tokens if the credentials are valid.
-
-@api_view(["POST"])  # Ensure it accepts only POST
-def logout_user(request):
-    try:
-        refresh_token = request.data["refresh"]
-        token = RefreshToken(refresh_token)
-        token.blacklist()
-        return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
-    except Exception:
-        return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)

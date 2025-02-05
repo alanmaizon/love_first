@@ -1,4 +1,4 @@
-# **❤️ Love That Gives Back**
+# **❤️ Love**
 
 ---
 
@@ -33,7 +33,7 @@
 - Enable commenting or "likes" on charities as a bonus feature.  
 
 ### 5. **Responsive Design**  
-- Use Tailwind CSS for a modern, responsive design.  
+- Use bootstrap and CSS for a modern, responsive design.
 - Ensure compatibility across devices.  
 
 ### 6. **API Integration**  
@@ -68,8 +68,7 @@
 
 ### **Front-End:**  
 - React with React Router.  
-- Axios for API calls.  
-- Tailwind CSS for styling.  
+- Axios for API calls.   
 
 ### **Back-End:**  
 - Django with Django Rest Framework.  

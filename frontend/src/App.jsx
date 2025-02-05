@@ -1,41 +1,86 @@
-import React, { useState, useEffect } from "react";
-import DonationForm from "./components/DonationForm";
-import { submitDonation } from "./api/donations";
+import { useEffect } from 'react'
+import { BrowserRouter as Router, Route, Routes, NavLink, useNavigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './AuthContext'
+import { Register, Login } from './components/Authentication'
 
-function App() {
-  const [charities, setCharities] = useState([]);
-  const [donationStatus, setDonationStatus] = useState("");
+import './App.css'
 
-  useEffect(() => {
-    // Fetch charities from API (this could be a hardcoded list for now)
-    const fetchCharities = async () => {
-      // Example of charities data
-      setCharities([
-        { id: 1, name: "Operation Smile" },
-        { id: 2, name: "Mary's Meals" },
-        { id: 3, name: "Xingu Vivo" },
-      ]);
-    };
-    
-    fetchCharities();
-  }, []);
-
-  const handleDonation = async (amount, selectedCharities) => {
-    const response = await submitDonation(amount, selectedCharities);
-    if (response.success) {
-      setDonationStatus("Donation successful! Thank you for your support!");
-    } else {
-      setDonationStatus("There was an issue with your donation.");
-    }
-  };
-
+const Home = () => {
+  const { isLoggedIn, username} = useAuth()
   return (
-    <div>
-      <h1>Welcome to Love That Gives Back</h1>
-      <DonationForm charities={charities} handleDonation={handleDonation} />
-      {donationStatus && <p>{donationStatus}</p>}
-    </div>
-  );
+    <h2>
+      {isLoggedIn
+        ? `Welcome, ${username}! You're logged in.`
+        : "Hi, please log in (or register) to use the site"}
+    </h2>
+  )
 }
 
-export default App;
+const PrivateComponent = () => {
+  const { isLoggedIn, username} = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login')
+    }
+  }, [isLoggedIn, navigate])
+
+  return isLoggedIn ? <h2>Welcome {username}! This is the private section for authenticated users</h2> : null
+}
+
+const Navigation = () => {
+  const { isLoggedIn, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    console.log('Logout successful')
+    navigate('/')
+  }
+
+  return (
+    <nav>
+      <h1><NavLink to="/">Django+React Auth Example</NavLink></h1>
+      <ul>
+        {isLoggedIn ? (
+          <>
+            <li><NavLink to="/private">PrivateComponent</NavLink></li>
+            <li><button onClick={handleLogout}>Logout</button></li>
+          </>
+        ) : (
+          <>
+            <li><NavLink to="/register">Register</NavLink></li>
+            <li><NavLink to="/login">Login</NavLink></li>
+          </>
+        )}
+      </ul>
+    </nav>
+  )
+}
+
+const AppContent = () => (
+  <div className="App">
+    <Navigation />
+
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/private" element={<PrivateComponent />} />
+      <Route path="*" element={<h2>404 Not Found</h2>} />
+    </Routes>
+  </div>
+)
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
+  )
+}
+
+export default App

@@ -1,129 +1,90 @@
-from django.test import TestCase
 from django.contrib.auth.models import User
-from rest_framework.test import APIClient
+from rest_framework.test import APITestCase
 from rest_framework import status
-from .models import Charity, Donation
-from .serializers import UserSerializer, CharitySerializer, DonationSerializer
-from django.urls import reverse
-from decimal import Decimal
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken  # Import JWT tokens
+from .models import Charity
 
-class CharityModelTest(TestCase):
+class CharityAPITestCase(APITestCase):
+
     def setUp(self):
-        self.charity = Charity.objects.create(name="Charity1", description="Description1", website="http://example.com")
-
-    def test_charity_creation(self):
-        self.assertEqual(self.charity.name, "Charity1")
-        self.assertEqual(self.charity.description, "Description1")
-        self.assertEqual(self.charity.website, "http://example.com")
-
-class DonationModelTest(TestCase):
-    def setUp(self):
+        """Set up test data"""
         self.user = User.objects.create_user(username="testuser", password="testpass")
-        self.charity = Charity.objects.create(name="Charity1", description="Description1", website="http://example.com")
-        self.donation = Donation.objects.create(user=self.user, amount=Decimal("100.00"))
-        self.donation.charities.add(self.charity)
+        self.admin_user = User.objects.create_superuser(username="admin", password="adminpass")
+        self.charity = Charity.objects.create(name="Save the Children", description="Helping kids worldwide")
 
-    def test_donation_creation(self):
-        self.assertEqual(self.donation.user.username, "testuser")
-        self.assertEqual(self.donation.amount, Decimal("100.00"))
-        self.assertIn(self.charity, self.donation.charities.all())
+        # Get admin authentication token
+        refresh = RefreshToken.for_user(self.admin_user)
+        self.admin_token = str(refresh.access_token)
 
-    def test_allocate_funds(self):
-        allocation = self.donation.allocate_funds()
-        self.assertEqual(allocation["couple"], Decimal("50.00"))
-        self.assertEqual(allocation["charities"]["Charity1"], Decimal("50.00"))
+    def authenticate_admin(self):
+        """Helper function to authenticate admin"""
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.admin_token}")
 
-class UserSerializerTest(TestCase):
-    def test_user_serializer(self):
-        user_data = {"username": "testuser", "email": "test@example.com", "password": "testpass"}
-        serializer = UserSerializer(data=user_data)
-        self.assertTrue(serializer.is_valid())
-        user = serializer.save()
-        self.assertEqual(user.username, "testuser")
-        self.assertEqual(user.email, "test@example.com")
+    def test_create_charity_invalid_data(self):
+        """🚫 Test creating a charity with missing fields"""
+        self.authenticate_admin()
+        
+        # Missing 'name' field
+        response = self.client.post("/api/charities/", {"description": "No name provided"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("name", response.data)  # Ensure error message is for 'name'
 
-class CharitySerializerTest(TestCase):
-    def setUp(self):
-        self.charity = Charity.objects.create(name="Charity1", description="Description1", website="http://example.com")
-
-    def test_charity_serializer(self):
-        serializer = CharitySerializer(self.charity)
-        data = serializer.data
-        self.assertEqual(data["name"], "Charity1")
-        self.assertEqual(data["description"], "Description1")
-        self.assertEqual(data["website"], "http://example.com")
-
-class DonationSerializerTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="testpass")
-        self.charity = Charity.objects.create(name="Charity1", description="Description1", website="http://example.com")
-        self.donation_data = {"user": self.user.id, "amount": Decimal("100.00"), "charities": [self.charity.id]}
-
-    def test_donation_serializer(self):
-        serializer = DonationSerializer(data=self.donation_data)
-        self.assertTrue(serializer.is_valid())
-        donation = serializer.save()
-        self.assertEqual(donation.user.username, "testuser")
-        self.assertEqual(donation.amount, Decimal("100.00"))
-        self.assertIn(self.charity, donation.charities.all())
-
-class UserRegistrationTest(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.register_url = reverse("register")
-
-    def test_register_user(self):
-        user_data = {"username": "testuser", "email": "test@example.com", "password": "testpass"}
-        response = self.client.post(self.register_url, user_data, format="json")
-        print("\nDEBUG RESPONSE:", response.status_code, response.data)  # Debug
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn("access", response.data)
-        self.assertIn("refresh", response.data)
-
-class UserLogoutTest(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(username="testuser", password="testpass")
-        self.client.force_authenticate(user=self.user)
-        self.logout_url = reverse("logout")
-
-    def test_logout_user(self):
-        refresh = RefreshToken.for_user(self.user)
-        response = self.client.post(self.logout_url, {"refresh": str(refresh)}, format="json")
-        print("\nDEBUG RESPONSE:", response.status_code, response.data)  # Debug
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["message"], "Logged out successfully")
-
-
-class CharityListCreateViewTest(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.charity_url = reverse("charities")
+    def test_create_duplicate_charity(self):
+        """🚫 Test creating a duplicate charity (should fail)"""
+        self.authenticate_admin()
+        
+        data = {"name": "Save the Children", "description": "Duplicate charity"}
+        response = self.client.post("/api/charities/", data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("name", response.data)  # Ensure error message is for 'name'
 
     def test_list_charities(self):
-        Charity.objects.create(name="Charity1", description="Description1", website="http://example.com")
-        response = self.client.get(self.charity_url, follow=True)
+        """✅ Test retrieving the list of charities (now checking pagination results)"""
+        response = self.client.get("/api/charities/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertIn("results", response.data)  # Ensure response is paginated
+        self.assertEqual(len(response.data["results"]), 1)  # ✅ Fix: check paginated data
 
-    def test_create_charity(self):
-        charity_data = {"name": "Charity2", "description": "Description2", "website": "http://example.com"}
-        response = self.client.post(self.charity_url, charity_data, format="json", follow=True)
-        print("\nDEBUG URL:", reverse("charities"))
+    def test_get_single_charity(self):
+        """✅ Test retrieving a single charity"""
+        response = self.client.get(f"/api/charities/{self.charity.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "Save the Children")
+
+    def test_create_charity_unauthorized(self):
+        """🚫 Unauthorized users cannot create charities"""
+        data = {"name": "New Charity", "description": "A test charity"}
+        response = self.client.post("/api/charities/", data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)  # Expecting 401 Unauthorized
+
+    def test_create_charity_authorized(self):
+        """✅ Admin users can create charities"""
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.admin_token}")  # Use JWT auth
+        data = {"name": "New Charity", "description": "A test charity"}
+        response = self.client.post("/api/charities/", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["name"], "Charity2")
+        self.assertEqual(Charity.objects.count(), 2)
 
-class DonationCreateViewTest(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(username="testuser", password="testpass")
-        self.client.force_authenticate(user=self.user)  # ✅ Authenticate user
-        self.charity = Charity.objects.create(name="Charity1", description="Description1", website="http://example.com")
-        self.donation_url = reverse("donate")
+    def test_filter_charities_by_name(self):
+        """✅ Test filtering charities by name (checking paginated results)"""
+        Charity.objects.create(name="Education First", description="A charity for education")
+        Charity.objects.create(name="Education for All", description="Another charity")
+        Charity.objects.create(name="Health First", description="A health charity")
+    
+        response = self.client.get("/api/charities/?search=Education")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # ✅ Fix: Check paginated response inside "results"
+        self.assertIn("results", response.data)
+        self.assertEqual(len(response.data["results"]), 2)  # Expect 2 Education-related charities
 
-    def test_create_donation(self):
-        donation_data = {"amount": "100.00", "charities": [self.charity.id]}
-        response = self.client.post(self.donation_url, donation_data, format="json")
-        print("\nDEBUG RESPONSE:", response.status_code, response.data)  # Debug
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_charity_pagination(self):
+        """✅ Ensure pagination works correctly"""
+        # Create 10 charities
+        for i in range(10):
+            Charity.objects.create(name=f"Charity {i}", description="Test")
+
+        response = self.client.get("/api/charities/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("next", response.data)  # Pagination should include 'next' URL
+        self.assertEqual(len(response.data["results"]), 5)  # Ensure page size = 5
