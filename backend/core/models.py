@@ -6,6 +6,9 @@ class Charity(models.Model):
     description = models.TextField(blank=True, null=True)
     website = models.URLField(blank=True, null=True)
 
+    class Meta:
+        verbose_name_plural = "Charities"
+
     def __str__(self):
         return self.name
 
