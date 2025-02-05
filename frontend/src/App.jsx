@@ -2,6 +2,9 @@ import { useEffect } from 'react'
 import { BrowserRouter as Router, Route, Routes, NavLink, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './AuthContext'
 import { Register, Login } from './components/Authentication'
+import ProtectedRoute from "./components/ProtectedRoute"; 
+import DonationForm from "./components/DonationForm";
+import DonationHistory from "./components/DonationHistory";
 
 import './App.css'
 
@@ -17,17 +20,21 @@ const Home = () => {
 }
 
 const PrivateComponent = () => {
-  const { isLoggedIn, username} = useAuth()
-  const navigate = useNavigate()
+  const { isLoggedIn, username } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(false);
     if (!isLoggedIn) {
-      navigate('/login')
+      navigate("/login");
     }
-  }, [isLoggedIn, navigate])
+  }, [isLoggedIn, navigate]);
 
-  return isLoggedIn ? <h2>Welcome {username}! This is the private section for authenticated users</h2> : null
-}
+  if (loading) return <p>Loading...</p>;
+  return isLoggedIn ? <h2>Welcome {username}! This is the private section.</h2> : null;
+};
+
 
 const Navigation = () => {
   const { isLoggedIn, logout } = useAuth()
@@ -67,7 +74,35 @@ const AppContent = () => (
       <Route path="/" element={<Home />} />
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/private" element={<PrivateComponent />} />
+
+      {/* Protected routes */}
+      <Route
+        path="/private"
+        element={
+          <ProtectedRoute>
+            <PrivateComponent />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* You can protect other routes too! */}
+      <Route
+        path="/donate"
+        element={
+          <ProtectedRoute>
+            <DonationForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <DonationHistory />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="*" element={<h2>404 Not Found</h2>} />
     </Routes>
   </div>

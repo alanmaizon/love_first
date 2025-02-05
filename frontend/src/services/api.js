@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-// TODO: change to env variable to prepare for deployment to production
+// Have to change to env variable to prepare for deployment to production
 const API_URL = 'http://localhost:8000/api'
 
 const api = axios.create({

@@ -4,8 +4,7 @@ const LOCAL_STORAGE_NAMESPACE = 'appAuthentication'
 
 const authStorage = {
   set: (key, value) => {
-    const item = JSON.stringify(value)
-    localStorage.setItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`, item)
+    localStorage.setItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`, JSON.stringify(value))
   },
   get: (key) => {
     const item = localStorage.getItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`)
@@ -24,8 +23,9 @@ const authStorage = {
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [username, setUsername] = useState(null)
+  // ✅ Initialize state from localStorage on first render
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!authStorage.get('access_token'))
+  const [username, setUsername] = useState(() => authStorage.get('username') || null)
 
   useEffect(() => {
     checkLoginStatus()
@@ -34,6 +34,7 @@ export const AuthProvider = ({ children }) => {
   const checkLoginStatus = () => {
     const token = authStorage.get('access_token')
     const storedUsername = authStorage.get('username')
+
     if (token && storedUsername) {
       setIsLoggedIn(true)
       setUsername(storedUsername)
