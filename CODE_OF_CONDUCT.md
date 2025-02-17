@@ -28,7 +28,7 @@ Community leaders are responsible for enforcing this Code of Conduct and will ta
 
 ## Reporting
 
-Instances of abusive, harassing, or otherwise unacceptable behavior can be reported to the project maintainers at **[your-email@example.com]**. All complaints will be reviewed and handled fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior can be reported to the project maintainers at **[alanmaizon@hotmail.com]**. All complaints will be reviewed and handled fairly.
 
 For more details, visit the [Contributor Covenant homepage](https://www.contributor-covenant.org/).
 
