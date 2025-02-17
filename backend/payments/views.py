@@ -1,7 +1,11 @@
 import stripe
 import paypalrestsdk
+import json
+import logging
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -16,6 +20,7 @@ from io import BytesIO
 
 # Configure Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET  # Add to settings
 
 # Configure PayPal
 paypalrestsdk.configure({
@@ -23,6 +28,9 @@ paypalrestsdk.configure({
     "client_id": settings.PAYPAL_CLIENT_ID,
     "client_secret": settings.PAYPAL_SECRET,
 })
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 def generate_donation_receipt(user_name, amount):
     """Generate a PDF receipt for the donation"""
@@ -119,42 +127,49 @@ def create_paypal_payment(request):
     if payment.create():
         return Response({"paypal_url": payment.links[1].href})
     else:
+        logger.error(f"PayPal Payment Error: {payment.error}")
         return Response({"error": "Payment failed"}, status=500)
 
-@api_view(["POST"])
+
+@csrf_exempt
 def stripe_webhook(request):
     """Handle Stripe webhook for successful payments"""
     payload = request.body
     sig_header = request.headers.get("Stripe-Signature")
 
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_SECRET_KEY)
-    except (ValueError, stripe.error.SignatureVerificationError):
-        return Response({"error": "Invalid payload"}, status=400)
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except (ValueError, stripe.error.SignatureVerificationError) as e:
+        logger.error(f"Stripe Webhook Error: {e}")
+        return HttpResponse(status=400)
 
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
-        amount = session["amount_total"] / 100  # Convert cents to dollars
-        user_email = session.get("customer_email", "unknown@example.com")
+        amount = session["amount_total"] / 100  # Convert from cents
+        email = session.get("customer_email", "")
 
-        user = User.objects.filter(email=user_email).first()
+        user = User.objects.filter(email=email).first()
         if user:
+            donation = Donation.objects.create(user=user, amount=amount)
             send_donation_email(user.email, user.username, amount)
 
-    return Response({"message": "Webhook received"}, status=200)
+    return HttpResponse(status=200)
 
 
-@api_view(["POST"])
+@csrf_exempt
 def paypal_webhook(request):
     """Handle PayPal webhook for successful payments"""
-    event = request.data
+    event = json.loads(request.body)
+    
+    logger.info(f"Received PayPal Webhook: {event}")
 
-    if event["event_type"] == "PAYMENT.SALE.COMPLETED":
+    if event.get("event_type") == "PAYMENT.SALE.COMPLETED":
         amount = event["resource"]["amount"]["total"]
         payer_email = event["resource"]["payer"]["email_address"]
 
         user = User.objects.filter(email=payer_email).first()
         if user:
+            donation = Donation.objects.create(user=user, amount=amount)
             send_donation_email(user.email, user.username, amount)
 
-    return Response({"message": "Webhook received"}, status=200)
+    return JsonResponse({"message": "Webhook received"}, status=200)
