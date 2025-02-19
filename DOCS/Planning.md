@@ -8,30 +8,49 @@ Below is the **high-level structure** of the web application:
 
 ```
 📍 Home (Landing Page)
-  ├── Hero Section (Mission & Call-to-Action)
-  ├── Wedding Date Countdown
-  ├── Charity Highlights  
-  ├── Login/Register  
+  ├── 🏠 Hero Section (Mission & Call-to-Action)
+  ├── ⏳ Wedding Countdown
+  ├── 💖 Charity Highlights
+  ├── 🔑 Login / Register
 
-📍 Authentication  
-  ├── Register (Name, Email, Password)  
-  ├── Login (JWT Authentication)  
-  ├── Logout  
+📍 Authentication
+  ├── 📝 Register (Name, Email, Password)
+  ├── 🔐 Login (JWT Authentication)
+  ├── 🚪 Logout
 
-📍 Dashboard (Authenticated Users)  
-  ├── Personalized Greeting  
-  ├── Donation Progress & History  
-  ├── Set Donation Goals  
+📍 Dashboard (Authenticated Users)
+  ├── 👋 Personalized Greeting
+  ├── 📊 Donation Progress & History
+  ├── 🎯 Set Donation Goals
 
-📍 Charity Pages (CRUD Functionality)  
-  ├── View Available Charities  
-  ├── Donate to a Charity (Stripe API)  
-  ├── Admin: Create/Edit/Delete Charity Profiles  
+📍 Charity Pages
+  ├── 🔍 View Charities
+  ├── 💰 Donate (Stripe API)
+  ├── 🏗️ Admin: Create/Edit/Delete Charities
 
-📍 Additional Pages  
-  ├── About Us  
-  ├── Contact Page  
-  ├── Terms & Conditions  
+📍 Additional Pages
+  ├── ℹ️ About Us
+  ├── 📞 Contact
+  ├── 📜 Terms & Conditions
+```
+
+### 🖥️ Web App Structure
+
+```
+               ┌──────────────────────────────────────┐
+               │        🏠 Home Page                  │
+               ├───────────┬──────────────────────────┘
+               │           │  
+        🔑 Login         📝 Register
+               │           │
+               └──► 👤 Dashboard ◄──┐  
+                     │             │
+      ┌──────────────┘             └──► 🔍 Charity List  
+      │                                 │  
+💰 Donation Progress                    │  
+🎯 Set Goals                            │  
+📜 Donation History                     │  
+                                      🏗️ Admin: Add/Edit/Delete Charities
 ```
 
 ---
