@@ -6,7 +6,6 @@ const api = axios.create({
   baseURL: API_URL,
 })
 
-
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -18,10 +17,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-
 export const login = async (username, password) => {
   try {
     const response = await api.post('/token/', { username, password });
+    const { access, refresh } = response.data;
+    localStorage.setItem('accessToken', access);
+    localStorage.setItem('refreshToken', refresh);
     return response.data;
   } catch (error) {
     console.error('Login error:', error.response?.data || error.message);
@@ -49,5 +50,4 @@ export const refreshToken = async (refreshToken) => {
   }
 };
 
-
-export default api
+export default api;

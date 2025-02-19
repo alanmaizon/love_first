@@ -42,10 +42,11 @@ describe('Authentication Tests', () => {
 
   test('Protected route redirects unauthenticated users', async () => {
     useAuth.mockReturnValue({ user: null });
-
+  
     render(
       <Router>
         <Routes>
+          <Route path="/" element={<div>Home Page</div>} /> {/* Add this line */}
           <Route
             path="/protected"
             element={
@@ -58,7 +59,7 @@ describe('Authentication Tests', () => {
         </Routes>
       </Router>
     );
-
+  
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/login');
     });

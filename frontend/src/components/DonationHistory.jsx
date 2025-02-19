@@ -8,6 +8,8 @@ const DonationHistory = ({ token }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!token) return;
+  
     axios.get(`${API_URL}/donations/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -16,7 +18,8 @@ const DonationHistory = ({ token }) => {
       setLoading(false);
     })
     .catch(() => setLoading(false));
-  }, []);
+  }, [token]);
+  
 
   return (
     <div className="donation-history">
