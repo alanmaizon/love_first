@@ -69,3 +69,53 @@ erDiagram
 ```
 
 ---
+
+
+```mermaid
+
+erDiagram
+
+    USER {
+        int id PK
+        string username
+        string email
+        string password_hash
+        string role "admin | user"
+        datetime created_at
+    }
+
+    CHARITY {
+        int id PK
+        string name
+        string description
+        string website_url
+        string logo_url
+        decimal total_donations
+        datetime created_at
+    }
+
+    DONATION {
+        int id PK
+        int user_id FK
+        int charity_id FK
+        decimal amount
+        datetime donation_date
+        string status "pending | completed | failed"
+        string transaction_id
+    }
+
+    TRANSACTION {
+        int id PK
+        int donation_id FK
+        decimal amount
+        string payment_method "card | paypal | bank_transfer"
+        string stripe_transaction_id
+        string status "successful | failed"
+        datetime transaction_date
+    }
+
+    USER ||--o{ DONATION : "makes"
+    CHARITY ||--o{ DONATION : "receives"
+    DONATION ||--|{ TRANSACTION : "processed through"
+
+```

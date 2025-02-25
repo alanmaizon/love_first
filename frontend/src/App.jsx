@@ -5,6 +5,7 @@ import { Register, Login } from './components/Authentication'
 import ProtectedRoute from "./components/ProtectedRoute"; 
 import DonationForm from "./components/DonationForm";
 import DonationHistory from "./components/DonationHistory";
+import Success from './components/Success';
 
 import './App.css'
 
@@ -48,11 +49,13 @@ const Navigation = () => {
 
   return (
     <nav>
-      <h1><NavLink to="/">Django+React Auth Example</NavLink></h1>
+      <h1><NavLink to="/">Love That Gives Back 💕</NavLink></h1>
       <ul>
         {isLoggedIn ? (
           <>
-            <li><NavLink to="/private">PrivateComponent</NavLink></li>
+            <li><NavLink to="/private">Private</NavLink></li>
+            <li><NavLink to="/donate">Donate</NavLink></li>
+            <li><NavLink to="/history">History</NavLink></li>
             <li><button onClick={handleLogout}>Logout</button></li>
           </>
         ) : (
@@ -73,6 +76,7 @@ const AppContent = () => (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/register" element={<Register />} />
+      
       <Route path="/login" element={<Login />} />
 
       {/* Protected routes */}
@@ -103,6 +107,9 @@ const AppContent = () => (
         }
       />
 
+      {/* Add the success route */}
+      <Route path="/success" element={<Success />} />
+      
       <Route path="*" element={<h2>404 Not Found</h2>} />
     </Routes>
   </div>

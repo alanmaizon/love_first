@@ -53,7 +53,7 @@ export const Login = () => {
   const handleSubmit = async (formData) => {
     const data = await apiLogin(formData.username, formData.password)
     login(data.access, data.refresh, formData.username)
-    navigate('/private')
+    navigate('/donate')
   }
 
   const fields = [

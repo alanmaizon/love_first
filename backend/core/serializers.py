@@ -13,24 +13,38 @@ class CharitySerializer(serializers.ModelSerializer):
         return value
 
 
+class DonationAllocationSerializer(serializers.ModelSerializer):
+    charity = CharitySerializer(read_only=True)
+
+    class Meta:
+        model = DonationAllocation
+        fields = ["charity", "amount"]
+
+
 class DonationSerializer(serializers.ModelSerializer):
     charities = serializers.PrimaryKeyRelatedField(queryset=Charity.objects.all(), many=True)
+    allocations = DonationAllocationSerializer(many=True, source="donationallocation_set", read_only=True)
 
     class Meta:
         model = Donation
-        fields = ["id", "user", "amount", "charities", "created_at"]
+        fields = ["id", "user", "amount", "charities", "allocations", "created_at"]
         read_only_fields = ["user", "created_at"]
 
     def create(self, validated_data):
         charities = validated_data.pop("charities", [])
         donation = Donation.objects.create(**validated_data)
         donation.charities.set(charities)
+
+        # ✅ Auto-create DonationAllocation entries
+        if charities:
+            charity_share = donation.amount * 0.5
+            per_charity = charity_share / len(charities)
+
+            for charity in charities:
+                DonationAllocation.objects.create(
+                    donation=donation,
+                    charity=charity,
+                    amount=per_charity
+                )
+
         return donation
-
-
-class DonationAllocationSerializer(serializers.ModelSerializer):
-    charity = CharitySerializer()
-
-    class Meta:
-        model = DonationAllocation
-        fields = ["charity", "amount"]
