@@ -4,14 +4,16 @@ const API_URL = "http://localhost:8000/api"; // Update if needed
 
 export const createStripeCheckout = async (amount, charities, token) => {
   try {
+    console.log("🟢 Sending request to Stripe:", { amount, charities, token });
     const response = await axios.post(
       `${API_URL}/stripe/checkout/`,
       { amount, charities },
       { headers: { Authorization: `Bearer ${token}` } }
     );
+    console.log("✅ Stripe Response:", response.data);
     return response.data; // { session_id, stripe_url }
   } catch (error) {
-    console.error("Stripe Checkout Error:", error.response?.data || error);
+    console.error("❌ Stripe Checkout Error:", error.response?.data || error);
     throw new Error(error.response?.data?.message || "Stripe payment failed");
   }
 };
