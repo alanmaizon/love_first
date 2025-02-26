@@ -47,8 +47,7 @@ Below is the **high-level structure** of the web application:
                      │             │
       ┌──────────────┘             └──► 🔍 Charity List  
       │                                 │  
-💰 Donation Progress                    │  
-🎯 Set Goals                            │  
+                      │  
 📜 Donation History                     │  
                                       🏗️ Admin: Add/Edit/Delete Charities
 ```
