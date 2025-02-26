@@ -27,7 +27,7 @@ import logging
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from core.models import Donation  # Adjust based on your app structure
+from donations.models import Donation  # Adjust based on your app structure
 from django.contrib.auth import get_user_model
 from payments.utils import send_donation_email, generate_donation_receipt  # Adjust import based on your structure
 

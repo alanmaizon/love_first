@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'authentication',
     'core',
     "payments",
+    "donations",
     "debug_toolbar",
 ]
 

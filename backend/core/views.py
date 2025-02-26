@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions, filters
-from .models import Charity, Donation
-from .serializers import CharitySerializer, DonationSerializer
+from .models import Charity
+from .serializers import CharitySerializer
 from rest_framework.pagination import PageNumberPagination
 
 class CharityPagination(PageNumberPagination):
@@ -21,14 +21,4 @@ class CharityViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()]  # Only admins can POST, PUT, DELETE
 
-class DonationViewSet(viewsets.ModelViewSet):
-    queryset = Donation.objects.select_related("user").prefetch_related("charities") # Optimize queries
-    serializer_class = DonationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Donation.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
 
