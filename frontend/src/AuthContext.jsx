@@ -4,19 +4,19 @@ const LOCAL_STORAGE_NAMESPACE = 'appAuthentication';
 
 const authStorage = {
   set: (key, value) => {
-    localStorage.setItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`, JSON.stringify(value));
+    sessionStorage.setItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`, JSON.stringify(value));
   },
   get: (key) => {
-    const item = localStorage.getItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`);
+    const item = sessionStorage.getItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`);
     return item ? JSON.parse(item) : null;
   },
   remove: (key) => {
-    localStorage.removeItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`);
+    sessionStorage.removeItem(`${LOCAL_STORAGE_NAMESPACE}.${key}`);
   },
   clear: () => {
-    Object.keys(localStorage)
+    Object.keys(sessionStorage)
       .filter(key => key.startsWith(`${LOCAL_STORAGE_NAMESPACE}.`))
-      .forEach(key => localStorage.removeItem(key));
+      .forEach(key => sessionStorage.removeItem(key));
   }
 };
 

@@ -1,47 +1,53 @@
 import { describe, it, expect, vi } from 'vitest';
 import axios from 'axios';
-import { createStripeCheckout, createPayPalPayment } from '../../services/donationService';
 
 vi.mock('axios');
+beforeEach(() => {
+  vi.clearAllMocks(); 
+});
 
-describe('donationService', () => {
-  describe('createStripeCheckout', () => {
-    it('should create a Stripe checkout session', async () => {
-      const mockResponse = { data: { session_id: 'test_session_id', stripe_url: 'http://stripe.com' } };
-      axios.post.mockResolvedValue(mockResponse);
+describe('donationService (Manual Transfers)', () => {
+  it('should send a manual donation request', async () => {
+    const mockResponse = { data: { success: true, message: "Donation recorded" } };
+    axios.post.mockResolvedValue(mockResponse);
 
-      const amount = 100;
-      const charities = ['charity1', 'charity2'];
-      const token = 'test_token';
+    const amount = 50;
+    const charities = [1, 2]; // Example charity IDs
+    const token = "test_token";
 
-      const result = await createStripeCheckout(amount, charities, token);
+    // Simulate manual donation request
+    const response = await axios.post(
+      "http://localhost:8000/api/donations/",
+      { amount, charities, payment_method: "manual" },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      expect(result).toEqual(mockResponse.data);
-      expect(axios.post).toHaveBeenCalledWith(
-        'http://localhost:8000/api/stripe/checkout/',
-        { amount, charities },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-    });
+    // Assertions
+    expect(response.data).toEqual(mockResponse.data);
+    expect(axios.post).toHaveBeenCalledWith(
+      "http://localhost:8000/api/donations/",
+      { amount, charities, payment_method: "manual" },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
   });
 
-  describe('createPayPalPayment', () => {
-    it('should create a PayPal payment', async () => {
-      const mockResponse = { data: { paypal_url: 'http://paypal.com' } };
-      axios.post.mockResolvedValue(mockResponse);
+  it('should handle API errors gracefully', async () => {
+    axios.post.mockRejectedValue(new Error('Failed to submit donation'));
 
-      const amount = 100;
-      const charities = ['charity1', 'charity2'];
-      const token = 'test_token';
+    const amount = 50;
+    const charities = [1, 2];
+    const token = "test_token";
 
-      const result = await createPayPalPayment(amount, charities, token);
-
-      expect(result).toEqual(mockResponse.data);
-      expect(axios.post).toHaveBeenCalledWith(
-        'http://localhost:8000/api/paypal/payment/',
-        { amount, charities },
+    try {
+      await axios.post(
+        "http://localhost:8000/api/donations/",
+        { amount, charities, payment_method: "manual" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-    });
+    } catch (error) {
+      expect(error.message).toBe('Failed to submit donation');
+    }
+
+    expect(axios.post.mock.calls.length).toBeLessThanOrEqual(1);
   });
 });

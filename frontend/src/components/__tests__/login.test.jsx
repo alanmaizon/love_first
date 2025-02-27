@@ -37,7 +37,7 @@ test('allows user to log in successfully', async () => {
   await waitFor(() => {
     expect(apiLogin).toHaveBeenCalledWith('testuser', 'Test1234!');
     expect(mockLogin).toHaveBeenCalledWith('access_token', 'refresh_token', 'testuser');
-    expect(mockNavigate).toHaveBeenCalledWith('/private');
+    expect(mockNavigate).toHaveBeenCalledWith('/donate');
   });
 });
 

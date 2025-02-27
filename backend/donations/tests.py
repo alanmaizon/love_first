@@ -69,3 +69,29 @@ class DonationTests(TestCase):
         data = {"amount": "50.00", "charities": []}
         response = self.client.post("/api/donations/", data, format="json")
         self.assertEqual(response.status_code, 400)  # Should fail
+
+    def test_create_manual_donation(self):
+        """Test if a user can create a donation with manual payment method."""
+        data = {"amount": "50.00", "charities": [self.charity1.id], "payment_method": "manual"}
+        response = self.client.post("/api/donations/", data, format="json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Donation.objects.count(), 1)
+        self.assertEqual(Donation.objects.first().payment_method, "manual")
+
+    def test_invalid_payment_method(self):
+        """Test that an invalid payment method is rejected."""
+        data = {"amount": "50.00", "charities": [self.charity1.id], "payment_method": "bitcoin"}  # Invalid!
+        response = self.client.post("/api/donations/", data, format="json")
+        self.assertEqual(response.status_code, 400)  # Should fail
+    
+    def test_create_donation_with_message(self):
+        """Test if a donation with a personalized message can be created."""
+        data = {
+            "amount": "75.00", 
+            "charities": [self.charity1.id],
+            "message": "Congratulations on your wedding! Wishing you all the happiness."
+        }
+        response = self.client.post("/api/donations/", data, format="json")
+        self.assertEqual(response.status_code, 201)
+        donation = Donation.objects.first()
+        self.assertEqual(donation.message, "Congratulations on your wedding! Wishing you all the happiness.")
