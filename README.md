@@ -131,9 +131,7 @@ erDiagram
 mindmap
   root((Love That Gives Back))
       About / How It Works (About Us)
-      Registration Page (Register)
-        Create Profile
-      Login Page (Login)
+      Login Page (Login/Logout)
       Home Page (Home)
         Select Cause (Charities)
           Donation Form Page (Donate)
