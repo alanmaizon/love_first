@@ -1,4 +1,4 @@
-# **❤️ Love**
+# **❤️ Love That Gives Back**
 
 ---
 
@@ -189,3 +189,27 @@ flowchart TD
     V --> W[(Percentage Charts, Donation Trends)]
     T --> X[Manage Users & Charities]
 ```
+
+---
+
+## User Stories
+
+### Guest User (Wedding Guest)
+- **As a guest, I want to view a couple’s profile and supported charities so that I can select one to donate to.**
+- **As a guest, I want to fill out a donation form with my name, email, donation amount, and a personal message so that I can contribute a gift.**
+- **As a guest, I want to review payment instructions and receive confirmation after submitting my donation so that I know my gift is acknowledged.**
+
+### Wedding Couple (Profile Owner)
+- **As a couple, I want to register and log in with a single user account so that I can manage my profile easily.**
+- **As a couple, I want to view my profile details (wedding date, bio, location, etc.) so that guests know more about us.**
+- **As a couple, I want to edit my profile details and update my supported charities so that I can choose which charities are displayed on my profile.**
+- **As a couple, I want to see a list of confirmed donations (filtered by the charities I support) so that I can track the contributions and share my gratitude.**
+
+### Admin
+- **As an admin, I want to log in and view an admin dashboard so that I can manage all donations and user data.**
+- **As an admin, I want to update the status of donations (mark them as confirmed or failed) so that the system reflects the correct payment status.**
+- **As an admin, I want to view overall statistics and analytics (e.g., donation trends, percentages, reports) so that I can monitor platform performance.**
+- **As an admin, I want to manage users and charities so that I can ensure data integrity and handle disputes if necessary.**
+
+---
+
